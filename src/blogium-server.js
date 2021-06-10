@@ -24,7 +24,8 @@ app.get("/posts/:id", (req, res) => {
 
 app.post('/posts', (req, res) => {
     postsCount += 1;
-    const contentPreview = req.body.content.substring(1,50);
+    const preview = req.body.content.replace("</p>","")
+    const contentPreview = preview.substring(3,50);
     const post = {id: postsCount, ...req.body, contentPreview, commentCount: 0, comments: [] };
     posts.push(post);
     fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
@@ -46,6 +47,13 @@ app.post('/posts/:id/comments', (req, res) => {
     res.send(post.comments)
     fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
 });
+
+app.delete(`/posts/:id`, (req, res) => {
+    const id = parseInt(req.params.id);
+    const posts = posts.filter(p => p.id !== id);
+    res.send(posts)
+    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
+})
 
 
 app.listen(4000, () => {
