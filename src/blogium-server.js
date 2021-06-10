@@ -50,10 +50,20 @@ app.post('/posts/:id/comments', (req, res) => {
 
 app.delete(`/posts/:id`, (req, res) => {
     const id = parseInt(req.params.id);
-    res.send(posts.filter(p => p.id !== id))
     const updatedPosts = posts.filter(p => p.id !== id);
     posts = updatedPosts;
+    res.send(posts)
     fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts: updatedPosts}));
+})
+
+app.put(`/posts/:id/edit`, (req, res) => {
+    const id = parseInt(req.params.id);
+    const post = posts.find(p => p.id === id);
+    post.title = req.body.title;
+    post.coverUrl = req.body.coverUrl;
+    post.content = req.body.content
+    res.send(post)
+    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
 })
 
 
