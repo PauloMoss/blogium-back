@@ -8,7 +8,7 @@ app.use(cors());
 
 fs.existsSync("./posts.json");
 const allPosts = fs.readFileSync("./posts.json",'utf8')
-const posts = JSON.parse(allPosts).posts
+let posts = JSON.parse(allPosts).posts
 let postsCount = JSON.parse(allPosts).postsCount
 
 
@@ -50,9 +50,10 @@ app.post('/posts/:id/comments', (req, res) => {
 
 app.delete(`/posts/:id`, (req, res) => {
     const id = parseInt(req.params.id);
-    const posts = posts.filter(p => p.id !== id);
-    res.send(posts)
-    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
+    res.send(posts.filter(p => p.id !== id))
+    const updatedPosts = posts.filter(p => p.id !== id);
+    posts = updatedPosts;
+    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts: updatedPosts}));
 })
 
 
