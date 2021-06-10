@@ -1,27 +1,16 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-const posts = [{
-    id: 1,
-    title: 'Hello World',
-    coverUrl: 'https://miro.medium.com/max/1024/1*OohqW5DGh9CQS4hLY5FXzA.png',
-    contentPreview: 'Esta é a estrutura de um post esperado pelo front-end',
-    content: 'Este é o conteúdo do post, o que realmente vai aparecer na página do post...',
-    commentCount: 2,
-    comments: [{
-        id: 1,
-        author: 'João',
-        content: 'Muito bom esse post! Tá de parabéns'
-      }, {
-        id: 2,
-        author: 'Maria',
-        content: 'Como faz pra dar palmas?'
-      }]
-  }];
+fs.existsSync("./posts.json");
+const allPosts = fs.readFileSync("./posts.json",'utf8')
+const posts = JSON.parse(allPosts).posts
+let postsCount = JSON.parse(allPosts).postsCount
+
 
 app.get("/posts", (req, res) => {
     res.send(posts);
@@ -34,9 +23,12 @@ app.get("/posts/:id", (req, res) => {
 });
 
 app.post('/posts', (req, res) => {
-    const post = {...req.body, id: posts.length + 1, comments: [] };
+    postsCount += 1;
+    const contentPreview = req.body.content.substring(1,50);
+    const post = {id: postsCount, ...req.body, contentPreview, commentCount: 0, comments: [] };
     posts.push(post);
-    res.send("Vou adicionar");
+    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
+    res.send(post);
 });
 
 app.get("/posts/:id/comments", (req, res) => {
@@ -47,9 +39,12 @@ app.get("/posts/:id/comments", (req, res) => {
 
 app.post('/posts/:id/comments', (req, res) => {
     const id = parseInt(req.params.id);
-    const post = posts.find(p => p.id === id)
-    post.comments.push(req.body);
-    res.send("Vou adicionar");
+    const post = posts.find(p => p.id === id);
+    const commentCount = post.commentCount + 1;
+    post.commentCount = commentCount;
+    post.comments.push({id: commentCount, ...req.body});
+    res.send(post.comments)
+    fs.writeFileSync("./posts.json", JSON.stringify({postsCount, posts}));
 });
 
 
